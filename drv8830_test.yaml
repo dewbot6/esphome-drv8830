@@ -1,84 +1,101 @@
 esphome:
   name: drv8830_test
-  includes:
-    - components/drv8830/drv8830.h
-    - components/drv8830/drv8830.cpp
+  # friendly_name: DRV8830 Test Device  # Optional: Add a friendly name
 
+# External component configuration
+# For local development:
+external_components:
+  - source:
+      type: local
+      path: components/drv8830
 
+# For using from GitHub (uncomment and use this instead):
+# external_components:
+#   - source: github://andrewsnodgrass/esphome-drv8830/components/drv8830
+#     version: main
+
+# Platform configuration - adjust for your ESP device
+# Examples:
+#   ESP32: esp32: { board: esp32dev }
+#   ESP8266: esp8266: { board: nodemcuv2 }
+#   ESP32-C3: esp32: { board: esp32-c3-devkitm-1 }
 esp32:
-  board: esp32-c6-devkitc-1
+  board: esp32dev  # Change to match your board
   framework:
-    type: esp-idf
+    type: arduino
 
-# OpenThread configuration
-network:
-  enable_ipv6: true
+# WiFi configuration - adjust for your network
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Enable fallback hotspot if WiFi fails
+  ap:
+    ssid: "DRV8830 Test Fallback Hotspot"
+    password: "test12345678"
 
-openthread:
-  device_type: FTD
-  tlv: !secret thread_tlv
-  force_dataset: true
-
-# Expose ESPHome API so Home Assistant or Thread border router can communicate
+# Enable Home Assistant API
 api:
+  encryption:
+    key: !secret api_encryption_key
 
-# Logging for debugging
+# Enable logging
 logger:
 
-# OTA updates for firmware
+# Enable OTA updates
 ota:
-  platform: esphome
+  password: !secret ota_password
 
+# I2C configuration
+# Adjust GPIO pins to match your hardware connections
 i2c:
-  id: bus_a
-  sda: GPIO2
-  scl: GPIO1
-  scan: true
-  frequency: 50000
+  sda: GPIO21  # Change to your SDA pin
+  scl: GPIO22  # Change to your SCL pin
+  scan: true   # Set to false after confirming I2C address
 
-# ===== Globals =====
-globals:
-  - id: drv8830_instance
-    type: void*
-    restore_value: false
-    initial_value: 'nullptr'
+# DRV8830 component configuration
+drv8830:
+  id: motor_driver
+  address: 0x60  # Default I2C address, change if using different address
 
-# Example test switches
+# Example switches to test motor control
 switch:
   - platform: template
-    name: "Motor Forward 1s"
+    name: "Motor Forward"
+    icon: "mdi:arrow-up"
     turn_on_action:
       - lambda: |-
-          auto *drv = static_cast<esphome::drv8830::DRV8830*>(id(drv8830_instance));
-          if (drv == nullptr) {
-            drv = new esphome::drv8830::DRV8830(id(bus_a), 0x60);
-            App.register_component(drv);
-            id(drv8830_instance) = static_cast<void*>(drv);
-            ESP_LOGI("drv8830", "DRV8830 component created and registered");
-          }
-          drv->set_motor(32, drv->FORWARD);
+          id(motor_driver)->set_motor(32, id(motor_driver)->FORWARD);
       - delay: 1s
       - lambda: |-
-          auto *drv = static_cast<esphome::drv8830::DRV8830*>(id(drv8830_instance));
-          if (drv != nullptr) {
-            drv->set_motor(0, drv->RELEASE);
-          }
+          id(motor_driver)->set_motor(0, id(motor_driver)->RELEASE);
 
   - platform: template
-    name: "Motor Backward 1s"
+    name: "Motor Backward"
+    icon: "mdi:arrow-down"
     turn_on_action:
       - lambda: |-
-          auto *drv = static_cast<esphome::drv8830::DRV8830*>(id(drv8830_instance));
-          if (drv == nullptr) {
-            drv = new esphome::drv8830::DRV8830(id(bus_a), 0x60);
-            App.register_component(drv);
-            id(drv8830_instance) = static_cast<void*>(drv);
-            ESP_LOGI("drv8830", "DRV8830 component created and registered");
-          }
-          drv->set_motor(32, drv->BACKWARD);
+          id(motor_driver)->set_motor(32, id(motor_driver)->BACKWARD);
       - delay: 1s
       - lambda: |-
-          auto *drv = static_cast<esphome::drv8830::DRV8830*>(id(drv8830_instance));
-          if (drv != nullptr) {
-            drv->set_motor(0, drv->RELEASE);
-          }
+          id(motor_driver)->set_motor(0, id(motor_driver)->RELEASE);
+
+  - platform: template
+    name: "Motor Brake"
+    icon: "mdi:stop"
+    turn_on_action:
+      - lambda: |-
+          id(motor_driver)->set_motor(0, id(motor_driver)->BRAKE);
+
+# Optional: Example with variable speed control
+number:
+  - platform: template
+    name: "Motor Speed"
+    min_value: 0
+    max_value: 63
+    step: 1
+    optimistic: true
+    set_action:
+      - lambda: |-
+          // Set motor speed (0-63) in forward direction
+          // Change FORWARD to BACKWARD for reverse
+          id(motor_driver)->set_motor((int)x, id(motor_driver)->FORWARD);

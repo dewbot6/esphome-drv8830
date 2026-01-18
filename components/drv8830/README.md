@@ -8,7 +8,7 @@ Add this to your ESPHome YAML configuration:
 
 ```yaml
 external_components:
-  - source: github://andrewsnodgrass/esphome-fireplace/components/drv8830
+  - source: github://andrewsnodgrass/esphome-drv8830/components/drv8830
 ```
 
 ## Usage
