@@ -20,8 +20,8 @@ Add this component to your ESPHome configuration:
 
 ```yaml
 external_components:
-  - source: github://andrewsnodgrass/esphome-drv8830/components/drv8830
-    version: main  # or a specific tag/commit
+  - source: github://andrewsnodgrass/esphome-drv8830
+    components: [drv8830]
 ```
 
 ## Quick Start

@@ -11,8 +11,8 @@ external_components:
 
 # For using from GitHub (uncomment and use this instead):
 # external_components:
-#   - source: github://andrewsnodgrass/esphome-drv8830/components/drv8830
-#     version: main
+#   - source: github://andrewsnodgrass/esphome-drv8830
+#     components: [drv8830]
 
 # Platform configuration - adjust for your ESP device
 # Examples:
@@ -43,7 +43,8 @@ logger:
 
 # Enable OTA updates
 ota:
-  password: !secret ota_password
+  - platform: esphome
+    password: !secret ota_password
 
 # I2C configuration
 # Adjust GPIO pins to match your hardware connections
