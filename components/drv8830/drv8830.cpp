@@ -39,7 +39,7 @@ bool DRV8830::write_register_(uint8_t reg, uint8_t value) {
 }
 
 bool DRV8830::read_register_(uint8_t reg, uint8_t *value) {
-  return this->write_then_read(&reg, 1, value, 1) == i2c::ERROR_OK;
+  return this->write_read(&reg, 1, value, 1) == i2c::ERROR_OK;
 }
 
 }  // namespace drv8830
